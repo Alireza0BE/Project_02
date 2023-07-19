@@ -10,6 +10,7 @@ def login():
    user=txt_user.get()
    pas=txt_pass.get()
    result=user_login(user,pas)
+
    if result:
       lbl_msg.configure(text="Welcome to your account!",fg="green")
       btn_login.config(state="disabled")
@@ -19,10 +20,10 @@ def login():
       btn_shop.configure(state="active")
       session=result
       
-   if login_strike==2:
+   elif login_strike==2:
       btn_login.config(state="disabled")
 
-   if user=="admin":
+   elif user=="admin":
       lbl_msg.configure(text="Welcome Admin!!",fg="green")
       btn_login.config(state="disabled")
       btn_admin.config(state="active")
@@ -62,32 +63,43 @@ def logout():
 
 def shop():
 
-   def add_cart():
-      pid=pidtxt.get()
-      qnt=qnttxt.get()      
-      if pid=="" or qnt=="":
-         lbl_msg2.configure(text="FILL THE INPUTS !!!!",fg="red")
-         return
-      result=get_single_product(pid)
-
-      if not result:
-         lbl_msg2.configure(text="Wrong product Id",fg="red")
-         return
-      if int(qnt)>result[3]:
-         lbl_msg2.configure(text="Not Enough Products",fg="red")
-         return
-      if int(qnt)<=0:
-         lbl_msg2.configure(text="Cannot compely",fg="red")
-         return
-      
-      save_to_cart(pid,session,qnt)
-      lbl_msg2.configure(text="Add To Cart Successfully",fg="green")
-
-
-
    def buy():
-      buy_cart()
-      lbl_msg2.configure(text="Purches compeleted",fg="green")
+        pid=pidtxt.get()
+        qnt=qnttxt.get()
+
+        if pid=="" or qnt=="" :
+            lbl_msg2.configure(text="fill the inputs",fg="red")
+            return
+        
+        if not pid.isdigit() or not qnt.isdigit():
+            lbl_msg2.configure(text="you must enter a number in inputs !!!",fg="red")
+            return
+        
+        result=get_single_product(pid)
+        if not result:
+            lbl_msg2.configure(text="wrong product id",fg="red")
+            return
+        
+        if int(qnt) > result[3]:
+            lbl_msg2.configure(text="not enough products",fg="red")
+            return
+        
+        if int(qnt) <= 0:
+            lbl_msg2.configure(text="quantity should be at least 1",fg="red")
+            return
+        
+        save_to_cart(pid,session,qnt)
+        lbl_msg2.configure(text="add to cart successfully",fg="green")
+        pidtxt.delete(0,"end")
+        qnttxt.delete(0,"end")
+
+        update_quantity_of_products(qnt,pid)
+        lst.delete(0,"end")
+        products=get_product()
+        for product in products:
+            text=f"ID={product[0]} , NAME={product[1]} , PRICE={product[2]} , QUANTITY={product[3]}"
+            lst.insert("end",text)
+        
 
 
 
@@ -117,8 +129,8 @@ def shop():
    qnttxt=tkinter.Entry(win_shop)
    qnttxt.pack()
 
-   btn_add=tkinter.Button(win_shop,text="Add",command=add_cart)
-   btn_add.pack()
+   # btn_add=tkinter.Button(win_shop,text="Add",command=add_cart)
+   # btn_add.pack()
 
    btn_buy=tkinter.Button(win_shop,text="Buy",command=buy)
    btn_buy.pack()
@@ -131,17 +143,30 @@ def shop():
 # ==========================   admin panel   =========================================================
 
 def admin_panel():
+
    def update():
-      id=txt_id0.get()
       pname=txt_pname0.get()
       price=txt_price0.get()
       qnt=txt_qnt0.get()
    
-      if id=="" or qnt=="" or pname=="" or price=="":
+      if qnt=="" or pname=="" or price=="":
          lbl_msg3.configure(text="FILL THE INPUTS !!!!",fg="red")
          return
-      result=update_product(id,pname,price,qnt)
+      result=update_product(pname,price,qnt)
 
+      # products=get_product()
+      # for product in products:
+      #    if product[1] == pname :
+      #       lbl_msg3.configure(text="product already exist !!!",fg="red")
+      #       return
+   
+      update_product(pname,price,qnt)
+      lbl_msg3.configure(text="product successfully added",fg="green")
+        
+
+
+
+# ==========================   #######   =========================================================
    win_admin=tkinter.Toplevel(win)
    win_admin.geometry("400x400")
    win_admin.title("Admin Panel")
@@ -156,11 +181,11 @@ def admin_panel():
       lst.insert("end",text)
    
 
-   lbl_id0=tkinter.Label(win_admin,text="ID")
-   lbl_id0.pack()
+   # lbl_id0=tkinter.Label(win_admin,text="ID")
+   # lbl_id0.pack()
 
-   txt_id0=tkinter.Entry(win_admin)
-   txt_id0.pack()
+   # txt_id0=tkinter.Entry(win_admin)
+   # txt_id0.pack()
 
    lbl_pname0=tkinter.Label(win_admin,text="Name")
    lbl_pname0.pack()
